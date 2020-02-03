@@ -17,6 +17,7 @@ import curso.api.rest.service.ImplementacaoUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+
 public class WebConfigSecurity extends WebSecurityConfigurerAdapter {
 
 	@Autowired
@@ -45,6 +46,9 @@ public class WebConfigSecurity extends WebSecurityConfigurerAdapter {
 		/* Filtra demais requisições para verificar as previsões do TOKEN JWT no HEADER HTTP */
 			.addFilterBefore(new JWTApiAutenticacaoFilter(), UsernamePasswordAuthenticationFilter.class);
 	}
+	
+	
+	
 
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -54,7 +58,10 @@ public class WebConfigSecurity extends WebSecurityConfigurerAdapter {
 				/* Padrão de codificação de senha */
 
 				.passwordEncoder(new BCryptPasswordEncoder());
-		super.configure(auth);
+		
+		
 	}
+	
+	
 
 }

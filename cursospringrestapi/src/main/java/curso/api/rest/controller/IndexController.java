@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,13 +36,24 @@ public class IndexController {
 																					 * Somente de onde quero autorizar
 																					 * para acessar os END POINTS
 																					 */
-	@GetMapping(value = "/{id}", produces = "application/json")
-	public ResponseEntity<Usuario> init(@PathVariable(value = "id") Long id) {
+	@GetMapping(value = "/{id}", produces = "application/json", headers = "X-API-Version=v1")
+	public ResponseEntity<Usuario> initV1(@PathVariable(value = "id") Long id) {
 
 		Optional<Usuario> usuario = usuarioRepository.findById(id);
+		System.out.println("Executando versão 1");
 
 		return new ResponseEntity<Usuario>(usuario.get(), HttpStatus.OK);
 	}
+	
+	@GetMapping(value = "/{id}", produces = "application/json", headers = "X-API-Version=v2")
+	public ResponseEntity<Usuario> initV2(@PathVariable(value = "id") Long id) {
+
+		Optional<Usuario> usuario = usuarioRepository.findById(id);
+		System.out.println("Executando versão 2");
+
+		return new ResponseEntity<Usuario>(usuario.get(), HttpStatus.OK);
+	}
+
 
 	/* PARA DELETAR */
 	@DeleteMapping(value = "/{id}", produces = "application/text")
@@ -53,10 +66,13 @@ public class IndexController {
 
 	/* PARA LISTAR */
 	/* @CrossOrigin(origins = "www.teste.com.br") */
+	@Cacheable("cacheusuarios")
 	@GetMapping(value = "/", produces = "application/json")
-	public ResponseEntity<List<Usuario>> usuario() {
+	public ResponseEntity<List<Usuario>> usuario() throws InterruptedException {
 
 		List<Usuario> list = (List<Usuario>) usuarioRepository.findAll();
+		
+		Thread.sleep(6000); /* Segura o codigo por 6 segundo para simular um processo lento */
 
 		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
 	}
@@ -77,6 +93,9 @@ public class IndexController {
 		for (int pos = 0; pos < usuario.getTelefones().size(); pos++) {
 			usuario.getTelefones().get(pos).setUsuario(usuario);
 		}
+		
+		String senhacriptografada = new BCryptPasswordEncoder().encode(usuario.getSenha());
+		usuario.setSenha(senhacriptografada);
 
 		Usuario usuarioSalvo = usuarioRepository.save(usuario);
 
@@ -86,17 +105,25 @@ public class IndexController {
 
 	/* PARA ATUALIZAR */
 	@PutMapping(value = "/", produces = "application/json")
-	public ResponseEntity<Usuario> updateUsuario(@RequestBody Usuario usuario) {
-
-		/* OUTRAS ROTINAS ANTES DE ATUALIZAR */
-
-		for (int pos = 0; pos < usuario.getTelefones().size(); pos++) {
+	public ResponseEntity<Usuario> atualizar(@RequestBody Usuario usuario) {
+		
+		/*outras rotinas antes de atualizar*/
+		
+		for (int pos = 0; pos < usuario.getTelefones().size(); pos ++) {
 			usuario.getTelefones().get(pos).setUsuario(usuario);
 		}
-
+		
+		Usuario userTemporario = usuarioRepository.findUserByLogin(usuario.getLogin());
+		if(!userTemporario.getSenha().equals(usuario.getSenha())) { /* Senhas Diferentes */ 
+			String senhacriptografada = new BCryptPasswordEncoder().encode(usuario.getSenha());
+			usuario.setSenha(senhacriptografada);			
+		}
+		
+		
 		Usuario usuarioSalvo = usuarioRepository.save(usuario);
-
-		return new ResponseEntity("Usuário Atualizado", HttpStatus.OK);
+		
+		return new ResponseEntity<Usuario>(usuarioSalvo, HttpStatus.OK);
+		
 	}
 
 }

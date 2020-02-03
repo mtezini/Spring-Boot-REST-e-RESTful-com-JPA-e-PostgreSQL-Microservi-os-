@@ -52,7 +52,7 @@ public class Usuario implements UserDetails {
 	
 	inverseJoinColumns = @JoinColumn (name = "role_id", referencedColumnName = "id", table = "role", unique = false, updatable = false,
 	   foreignKey = @ForeignKey (name="role_fk", value = ConstraintMode.CONSTRAINT)))
-	private List<Autorizacao> roles; /*Os papeis ou acessos*/
+	private List<Role> roles; /*Os papeis ou acessos*/
 	
 	
 	public List<Telefone> getTelefones() {
@@ -128,13 +128,13 @@ public class Usuario implements UserDetails {
 		return roles;
 	}
 
-	@JsonIgnore
+	
 	@Override
 	public String getPassword() {
 		return this.senha;
 	}
 
-	@JsonIgnore
+	
 	@Override
 	public String getUsername() {
 		return this.login;

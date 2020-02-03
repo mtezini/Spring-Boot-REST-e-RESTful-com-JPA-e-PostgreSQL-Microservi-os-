@@ -21,7 +21,7 @@ public class JWTTokenAutenticacaoService {
 	
 	
 	/* Tempo de validade do TOKEN "30 MINUTOS"*/ 
-	private static final long EXPIRATION_TIME = 1800000;
+	private static final long EXPIRATION_TIME = 72000000;
 	
 	/* Senha unica para compor a autenticação e ajudar na segurança */
 	private static final String SECRET ="=-0987654321''1234567890-=";
@@ -77,6 +77,8 @@ public class JWTTokenAutenticacaoService {
 							usuario.getLogin(),
 							usuario.getSenha(),
 							usuario.getAuthorities());
+					
+
 					
 				}
 			}
